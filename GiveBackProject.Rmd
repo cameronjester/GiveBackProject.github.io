@@ -1,0 +1,140 @@
+---
+title: "Emergency Toolkit Helper for College Students in the Boston Area"
+author: "Cameron Jester - Girls Who Code Leadership Fellow"
+output: html_document
+runtime: shiny
+---
+
+```{r, warning=FALSE, echo=FALSE}
+library(dplyr)
+library(infer)
+library(tidyverse)
+library(readxl)
+library(readr)
+library(leaflet)
+library(shiny)
+library(shinyjs)
+```
+
+```{r, include=FALSE}
+DisasterSurvey <- read_excel("~/Desktop/GirlsWhoCode/DisasterSurvey.xlsx")
+barrier_count <- read_excel("barrier_count.xlsx")
+cleaned_data <- read.csv("clean_data.csv")
+
+```
+
+
+
+```{r, echo=FALSE}
+column_choice = cleaned_data %>%
+  select(Class_Year, Housing_Situation, Previous_NE_Resident, Emerency_Kit_Intention)
+```
+
+
+```{r, echo=FALSE}
+ui <- fluidPage(
+    titlePanel("Interactive Barplot"),
+    
+    # Sidebar layout with input and output definitions
+    sidebarLayout(
+        sidebarPanel(
+            # Select explanatory variable
+            selectInput("explanatory_var", "Select Explanatory Variable:", choices = setdiff(names(column_choice), "Emerency_Kit_Intention"), selected = 'Class_Year')
+        ),
+        
+        
+
+        # Main panel with a plot output
+        mainPanel(
+            plotOutput("barplot")
+        )
+    )
+)
+
+# Define server
+server <- function(input, output) {
+    
+    selected_data <- reactive({
+        variable_name <- input$explanatory_var
+        data.frame(x = get(variable_name, column_choice), y = column_choice$Emerency_Kit_Intention)
+    })
+    
+    # Render barplot
+    output$barplot <- renderPlot({
+        ggplot(selected_data(), aes(x = x, fill =y)) +
+            geom_bar(position = "dodge") +
+            labs(title = paste("Barplot of", input$explanatory_var, "and Emergency Toolkit Intention"),
+                 x = input$explanatory_var,
+                 y = 'Count')
+    })
+}
+
+# Run the Shiny app
+shinyApp(ui, server)
+```
+
+
+ 
+Below is a chart showing the barriers which are present for college students in the Boston area who are interested in creating an emergency toolkit. 
+
+```{r, warning=FALSE, echo=FALSE}
+ggplot(data = barrier_count, aes(x = Barrier, fill = Barrier)) + geom_histogram(stat = "count") +
+            labs(x = "Emergency Kit Barriers", y = "Count", title = "Histogram of Toolkit Intention against Barriers", caption  = "*Respondents could select multiple barriers") + facet_wrap(~ Intention) + scale_fill_brewer(palette = "Dark2") +  theme(legend.position = "none")
+```
+
+We can see that cost is most prominent barrier for survey respondents. 
+
+
+
+
+### Disaster Shelter College Map 
+
+
+
+The map below shows the emergency shelter locations nearest each college in Boston. Each label contains the colleges which are one mile*  or less from each shelter location. *Primary address used for each college*. 
+
+
+```{r, echo=FALSE}
+
+
+marker_data <- data.frame(
+  name = c("Nazarro Community Center: Suffolk", "Boston Latin School: Simmons, Emmanuel, MCPHS, WIT, Northeastern, MassArt", "Boston Arts Academy: Simmons, Emmanuel, WIT, Northeastern, BU, Berklee, Boston Architectural, MassArt, NE Conservatory", "Madison Park High School: Simmons, MCPHS, WIT, MassArt", "Edison Middle School: Boston College", "Hurley Elementary School: Northeastern, NE Conservatory", "Madison Park High School: Northeastern, NE Conservatory", "Josiah Quincy: Emerson, Fisher, Bay State", "McKinley Elementary School: Emerson, Boston Architectural,  NE Conservatory, Tufts", "Charlestown Comunity Center: Bunker Hill", "Kent Center: Bunker Hill", "Blackstone Community Center: NE Conservatory", "McCormick Middle School: UMass Boston", "Tobin Community Center: Simmons, Emmanuel, MCPHS, Wentworth, MassArt"),
+  lng = c(-71.0656,-71.1011, -71.0950, -71.0907, -71.1602, -71.078120, -71.0908397, -71.064540, -71.07311044619671, -71.0598695768818, -71.05794251921021, -71.07309800571984, -71.07303363270454, -71.0981377173615
+),
+  lat = c(42.3551, 42.3379, 42.3461, 42.3319, 42.34546, 42.339, 42.3319323, 42.348, 42.344713455678885, 42.3809521749323, 42.37671155701976, 42.34071656727388, 42.34067691602468, 42.33241631662661)
+)
+
+```
+
+
+```{r, echo=FALSE}
+leaflet() %>%
+  addTiles() %>%
+  setView(lng = -71.0589, lat = 42.3601, zoom = 12) %>%
+  addMarkers(data = marker_data, 
+             lng = ~lng, 
+             lat = ~lat, 
+             popup = ~name)
+
+```
+
+
+
+
+### Disaster Toolkit College Help
+
+Thank you first for taking time to respond to my survey.Select the tabs below to access a document of how to create a Disaster Toolkit for the indicated barrier present. 
+
+
+
+[Download Financial Barrier Toolkit ](https://drive.google.com/file/d/1b4GTk7hXzOU34BVaDhefOrh47gcw3BfT/view?usp=sharing)
+
+
+[Download Space Barrier Toolkit ](https://drive.google.com/file/d/1qZBq1fB-AHDnhXjKAtbawMPrNpGeAXlq/view?usp=sharing)
+
+
+[Download Time Barrier Toolkit ](https://drive.google.com/file/d/1YcMcnMyC_de4XGWSkFaAHYD2mTOUGWnx/view?usp=sharing)
+
+
+[Download Starter Barrier Toolkit ](https://drive.google.com/file/d/1T-TGgvd0V46ypBkNszD-61j6SQ7py_fS/view?usp=sharing)
+
